@@ -45,22 +45,22 @@ export const formatDateTime = (dateString: Date | string, timeZone: string = Int
   };
 
   const formattedDateTime: string = new Date(dateString).toLocaleString(
-    "en-US",
+    "es-MX",
     dateTimeOptions
   );
 
   const formattedDateDay: string = new Date(dateString).toLocaleString(
-    "en-US",
+    "es-MX",
     dateDayOptions
   );
 
   const formattedDate: string = new Date(dateString).toLocaleString(
-    "en-US",
+    "es-MX",
     dateOptions
   );
 
   const formattedTime: string = new Date(dateString).toLocaleString(
-    "en-US",
+    "es-MX",
     timeOptions
   );
 

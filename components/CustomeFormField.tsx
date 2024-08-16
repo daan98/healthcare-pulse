@@ -179,7 +179,7 @@ const CustomeFormField = (props : FormFieldInterface) => {
                 props={props}
               />
 
-              <FormMessage>{ fieldDescription }</FormMessage>
+              <FormMessage className="">{ fieldDescription }</FormMessage>
 
             </FormItem>
           )}

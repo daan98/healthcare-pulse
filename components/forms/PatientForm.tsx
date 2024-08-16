@@ -45,6 +45,7 @@ const PatientForm = () => {
 
       if (user) router.push(`/patients/${user.$id}/register`)
     } catch (error) {
+      setisLoading(false);
       console.log("Error while submitting the form: ",  error);
     }
   }

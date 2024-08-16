@@ -1,6 +1,6 @@
 "use client"
 
-import { Doctors, GenderOptions, IdentificationTypes } from "@/constants"
+import { Doctors, GenderOptions, IdentificationTypes, PatientFormDefaultValues } from "@/constants"
 import { Form, FormControl } from "@/components/ui/form"
 import { Label } from "../ui/label"
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
@@ -14,9 +14,9 @@ import CustomeFormField from "../CustomeFormField"
 import FileUploader from "../FileUploader"
 import Image from "next/image"
 
-import { createUser } from "@/lib/actions/patient.actions"
+import { createUser, registerPatient } from "@/lib/actions/patient.actions"
 import { FormFieldTypeEnum } from "./PatientForm"
-import { UserFormValidation } from "@/lib/validation"
+import { PatientFormValidation, UserFormValidation } from "@/lib/validation"
 import SubmitButton from "../SubmitButton"
 
 const RegisterForm = ({ user } : {user : User}) => {
@@ -24,26 +24,46 @@ const RegisterForm = ({ user } : {user : User}) => {
   const [isLoading, setisLoading] = useState(false)
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof UserFormValidation>>({
-    resolver: zodResolver(UserFormValidation),
+  const form = useForm<z.infer<typeof PatientFormValidation>>({
+    resolver: zodResolver(PatientFormValidation),
     defaultValues: {
+      ...PatientFormDefaultValues,
       name: "",
       email: "",
       phone: "",
     },
   })
  
-  async function onSubmit({name, email, phone}: z.infer<typeof UserFormValidation>) {
+  async function onSubmit(values : z.infer<typeof PatientFormValidation>) {
     setisLoading(true);
 
+    let formData;
+
+    if(values.identificationDocument && values.identificationDocument.length > 0){
+      const blobFile = new Blob([values.identificationDocument[0]], {
+        type: values.identificationDocument[0].type,
+      });
+
+      formData = new FormData();
+      formData.append("blobFile", blobFile);
+      formData.append("name", values.identificationDocument[0].name);
+    }
     try {
-      const userData : CreateUserParams = { name, email, phone };
+      const patientData = {
+        ...values,
+        userId: user.$id,
+        birthDate: new Date(values.birthDate),
+        identificationDocument: values.identificationDocument ? formData : undefined,
+      };
 
-      const user = await createUser(userData);
+      const patient = await registerPatient(patientData);
 
-      if (user) router.push(`/patients/${user.$id}/register`)
+      if(patient) {
+        router.push(`/patients/${user.$id}/new-appointment`);
+      }
     } catch (error) {
-      console.log("Error while submitting the form: ",  error);
+      setisLoading(false);
+      console.log("Error while submitting the register form: ",  error);
     }
   }
 
@@ -64,7 +84,6 @@ const RegisterForm = ({ user } : {user : User}) => {
         {/* Nombre del cliente */}
         <CustomeFormField
           control={form.control}
-          fieldDescription="Este es el nombre que se muestra al publico."
           fieldType={FormFieldTypeEnum.INPUT}
           iconAlt="user"
           iconSrc="/assets/icons/user.svg"
@@ -77,7 +96,6 @@ const RegisterForm = ({ user } : {user : User}) => {
         <div className="flex flex-col gap-6 xl:flex-row">
           <CustomeFormField
             control={form.control}
-            fieldDescription="Este es el correo provisto cuando se regisrtró."
             fieldType={FormFieldTypeEnum.INPUT}
             iconAlt="email"
             iconSrc="/assets/icons/email.svg"
@@ -89,7 +107,6 @@ const RegisterForm = ({ user } : {user : User}) => {
 
           <CustomeFormField
             control={form.control}
-            fieldDescription="Número de teléfono móvil."
             fieldType={FormFieldTypeEnum.PHONE_INPUT}
             iconAlt="teléfono"
             label="Número de teléfono"
@@ -136,7 +153,7 @@ const RegisterForm = ({ user } : {user : User}) => {
                         htmlFor={option}
                         className="cursor-pointer"
                       >
-                        { option }
+                        { option === "male" ? "Masculino" : option == "female" ? "Femenino" : "Otro" }
                       </Label>
                     </div>
                   ))}
@@ -150,7 +167,6 @@ const RegisterForm = ({ user } : {user : User}) => {
         <div className="flex flex-col gap-6 xl:flex-row">
           <CustomeFormField
             control={form.control}
-            fieldDescription="Esta es la dirección donde vive el paciente."
             fieldType={FormFieldTypeEnum.INPUT}
             label="Dirección"
             name="address"
@@ -160,7 +176,6 @@ const RegisterForm = ({ user } : {user : User}) => {
 
           <CustomeFormField
             control={form.control}
-            fieldDescription="Esta es la ocupación del paciente."
             fieldType={FormFieldTypeEnum.INPUT}
             label="Ocupación"
             name="occupation"
@@ -173,7 +188,6 @@ const RegisterForm = ({ user } : {user : User}) => {
         <div className="flex flex-col gap-6 xl:flex-row">
           <CustomeFormField
             control={form.control}
-            fieldDescription="Nombre del contacto de mergencia."
             fieldType={FormFieldTypeEnum.INPUT}
             label="Nombre del contacto de emergencia"
             name="emergencyContactName"
@@ -183,7 +197,6 @@ const RegisterForm = ({ user } : {user : User}) => {
 
           <CustomeFormField
             control={form.control}
-            fieldDescription="Número de teléfono del contacto de emergencia."
             fieldType={FormFieldTypeEnum.PHONE_INPUT}
             label="Número de contacto de emergencia"
             name="emergencyContactNumber"
@@ -202,7 +215,6 @@ const RegisterForm = ({ user } : {user : User}) => {
         {/* Doctor primario */}
         <CustomeFormField
           control={form.control}
-          fieldDescription="Doctor a escoger."
           fieldType={FormFieldTypeEnum.SELECT}
           label="Doctor primario"
           name="primaryPhysician"
@@ -228,7 +240,6 @@ const RegisterForm = ({ user } : {user : User}) => {
         <div className="flex flex-col gap-6 xl:flex-row">
           <CustomeFormField
             control={form.control}
-            fieldDescription="Empresa de seguros médicos."
             fieldType={FormFieldTypeEnum.INPUT}
             label="Proveedor de seguros"
             name="insuranceProvider"
@@ -238,7 +249,6 @@ const RegisterForm = ({ user } : {user : User}) => {
 
           <CustomeFormField
             control={form.control}
-            fieldDescription="Número de seguro social."
             fieldType={FormFieldTypeEnum.INPUT}
             label="Número de poliza de seguro"
             name="insurancePolicyNumber"
@@ -251,7 +261,6 @@ const RegisterForm = ({ user } : {user : User}) => {
         <div className="flex flex-col gap-6 xl:flex-row">
           <CustomeFormField
             control={form.control}
-            fieldDescription="Productos o alimentos que le causen efectos secundarios."
             fieldType={FormFieldTypeEnum.TEXTAREA}
             label="Alergías (Si las hay)"
             name="allergies"
@@ -261,7 +270,6 @@ const RegisterForm = ({ user } : {user : User}) => {
 
           <CustomeFormField
             control={form.control}
-            fieldDescription="Medicamentos que este tomando actualmente."
             fieldType={FormFieldTypeEnum.TEXTAREA}
             label="Medicación actual (Si la hay)"
             name="currentMedication"
@@ -274,7 +282,6 @@ const RegisterForm = ({ user } : {user : User}) => {
         <div className="flex flex-col gap-6 xl:flex-row">
           <CustomeFormField
             control={form.control}
-            fieldDescription="Historial médico familiar."
             fieldType={FormFieldTypeEnum.TEXTAREA}
             label="Historia médica familiar"
             name="familyMedicalHistory"
@@ -302,7 +309,6 @@ const RegisterForm = ({ user } : {user : User}) => {
         {/* Tipo de identificación */}
         <CustomeFormField
           control={form.control}
-          fieldDescription="Identificación personal."
           fieldType={FormFieldTypeEnum.SELECT}
           label="Tipo de identificación"
           name="identificationType"
@@ -318,10 +324,9 @@ const RegisterForm = ({ user } : {user : User}) => {
         {/* Número de identificación */}
         <CustomeFormField
           control={form.control}
-          fieldDescription="Número de identificación personal seleccionada."
           fieldType={FormFieldTypeEnum.INPUT}
           label="Número de identificación"
-          name="identificationType"
+          name="identificationNumber"
           placeholder="123456789"
         />
 

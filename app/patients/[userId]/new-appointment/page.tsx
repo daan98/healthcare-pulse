@@ -1,12 +1,10 @@
-import RegisterForm from '@/components/forms/RegisterForm';
-import { getUser } from '@/lib/actions/patient.actions';
+import AppointmentForm from '@/components/forms/AppointmentForm';
+import { getPatient } from '@/lib/actions/patient.actions';
 import Image from 'next/image';
-import Link from 'next/link';
 import React from 'react'
 
-const Register = async ({ params : { userId }} : SearchParamProps) => {
-
-  const user = await getUser(userId);
+const NewAppointment = async ({params : { userId }} : SearchParamProps) => {
+  const patient = await getPatient(userId);
 
   return (
     <div className="flex h-screen max-h-screen">
@@ -20,7 +18,7 @@ const Register = async ({ params : { userId }} : SearchParamProps) => {
             className="mb-12 h-10 w-fit"
           />
 
-          <RegisterForm user={user} />
+          <AppointmentForm userId={userId} type={"create"} patientId={patient.$id} />
 
           <p className="copyright py-12">
             © 2024 CarePulse
@@ -29,14 +27,14 @@ const Register = async ({ params : { userId }} : SearchParamProps) => {
       </section>
 
       <Image
-        src="/assets/images/register-img.png"
+        src="/assets/images/appointment-img.png"
         height={1000}
         width={1000}
-        alt="register"
-        className="side-img max-w-[390px]"
+        alt="appointment"
+        className="side-img max-w-[390px] bg-bottom"
       />
     </div>
-  )
+  );
 }
 
-export default Register;
+export default NewAppointment;
