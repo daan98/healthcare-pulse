@@ -12,17 +12,22 @@ import { FormFieldTypeEnum } from './PatientForm';
 import { SelectItem } from '../ui/select';
 import Image from 'next/image';
 import { Doctors } from '@/constants';
-import { createAppointment } from '@/lib/actions/appointment.action';
+import { createAppointment, updateAppointment } from '@/lib/actions/appointment.action';
 import { getAppointmentSchema } from '@/lib/validation';
+import { Appointment } from '@/types/appwrite.type';
 
 const AppointmentForm = ({
   userId,
   type,
   patientId,
+  appointment,
+  setOpen
 } : {
   userId : string,
   type : "create" | "cancel" | "schedule",
   patientId : string,
+  appointment : Appointment,
+  setOpen  : (open : boolean) => void,
 }) => {
   const [isLoading, setisLoading] = useState(false)
   const router = useRouter();
@@ -77,8 +82,32 @@ const AppointmentForm = ({
           form.reset();
           router.push(`/patients/${userId}/new-appointment/success?appointmentId=${appointment.$id}`);
         }
+      } else {
+        const appointmentToUpdate = {
+          userId,
+          appointmentId: appointment.$id,
+          appointment: {
+            primaryPhysician: values.primaryPhysician,
+            schedule: values.schedule,
+            status: status as Status,
+            cancellationReason:values.cancellationReason
+          },
+          type
+        };
+
+          const updatedAppointment = await updateAppointment(appointmentToUpdate);
+
+          if(updatedAppointment) {
+              setOpen && setOpen(false);
+              form.reset();
+              setisLoading(false);
+          } else {
+            setisLoading(false);
+            // TODO ENVIAR MENSAJE DE QUE NO SE ENCONTRO LA CITA
+          }
+        }
       }
-    } catch (error) {
+    catch (error) {
       setisLoading(false);
       console.log("Error while submitting the appointment form: ",  error);
     }
@@ -107,8 +136,14 @@ const AppointmentForm = ({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 flex-1">
         <section className="mb-12 space-y-4">
-          <h1 className="header">Nueva Consulta 🩺</h1>
-          <p className="text-dark-700">Pida su cita en tan solo segundos</p>
+          <h1 className="header">
+            { 
+              type === "schedule" ? 'Agendar Consulta 🩺' : 
+              type === "create" ? 'Nueva Consulta 🩺' : 
+              'Cancelar Consulta 🩺' 
+            }
+          </h1>
+          <p className="text-dark-700">Concrete su cita en tan solo segundos</p>
         </section>
         
         {type !== "cancel" && (

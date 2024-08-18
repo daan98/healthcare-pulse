@@ -40,7 +40,7 @@ export const IdentificationTypes = [
   "Credencial para votar",
 ];
 
-export const Doctors = [
+export const Doctors : Doctor[] = [
   {
     image: "/assets/images/dr-green.png",
     name: "Juan Valdéz",
