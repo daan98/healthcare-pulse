@@ -26,8 +26,8 @@ const AppointmentForm = ({
   userId : string,
   type : "create" | "cancel" | "schedule",
   patientId : string,
-  appointment : Appointment,
-  setOpen  : (open : boolean) => void,
+  appointment ?: Appointment,
+  setOpen  ?: (open : boolean) => void,
 }) => {
   const [isLoading, setisLoading] = useState(false)
   const router = useRouter();
@@ -36,15 +36,16 @@ const AppointmentForm = ({
   const form = useForm<z.infer<typeof AppointmentFormValidation>>({
     resolver: zodResolver(AppointmentFormValidation),
     defaultValues: {
-      primaryPhysician: "",
-      schedule: new Date(),
-      reason: "",
-      note: "",
-      cancellationReason: ""
+      primaryPhysician: appointment ? appointment.primaryPhysician : "",
+      schedule: appointment ? new Date(appointment.schedule) : new Date(Date.now()),
+      reason: appointment ? appointment.reason : "",
+      note: appointment?.note || "",
+      cancellationReason: appointment?.cancellationReason || "",
     },
   })
  
   async function onSubmit(values : z.infer<typeof AppointmentFormValidation>) {
+    console.log("submitting: ", {type});
     setisLoading(true);
 
     const { primaryPhysician, schedule, reason, note } = values;
@@ -83,20 +84,23 @@ const AppointmentForm = ({
           router.push(`/patients/${userId}/new-appointment/success?appointmentId=${appointment.$id}`);
         }
       } else {
-        const appointmentToUpdate = {
-          userId,
-          appointmentId: appointment.$id,
-          appointment: {
-            primaryPhysician: values.primaryPhysician,
-            schedule: values.schedule,
-            status: status as Status,
-            cancellationReason:values.cancellationReason
-          },
-          type
-        };
-
+        if (appointment?.$id) {
+          const appointmentToUpdate = {
+            userId,
+            appointmentId: appointment?.$id,
+            appointment: {
+              primaryPhysician: values.primaryPhysician,
+              schedule: new Date(values.schedule),
+              status: status as Status,
+              cancellationReason: type === "cancel" ? values.cancellationReason : ""
+            },
+            type
+          };
+  
+          console.log("inside appointmentToUpdate: ", appointmentToUpdate);
+  
           const updatedAppointment = await updateAppointment(appointmentToUpdate);
-
+  
           if(updatedAppointment) {
               setOpen && setOpen(false);
               form.reset();
@@ -105,6 +109,7 @@ const AppointmentForm = ({
             setisLoading(false);
             // TODO ENVIAR MENSAJE DE QUE NO SE ENCONTRO LA CITA
           }
+        }
         }
       }
     catch (error) {
@@ -187,6 +192,7 @@ const AppointmentForm = ({
                 name='reason'
                 label='Razón de la consulta.'
                 placeholder='Por favor, explique la razón por la cual desea la consulta médica...'
+                disabled={type === 'schedule' ? true : false}
               />
 
               <CustomeFormField
@@ -195,6 +201,7 @@ const AppointmentForm = ({
                 name='note'
                 label='Comentarios adicionales.'
                 placeholder='Información adicional a tomar en cuenta para la consulta...'
+                disabled={type === 'schedule' ? true : false}
               />
             </div>
           </>

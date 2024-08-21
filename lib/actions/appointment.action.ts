@@ -1,8 +1,8 @@
 "use server"
 
 import { ID, Models, Query } from "node-appwrite";
-import { APPOINTMENT_ID, DATABASE_ID, databases } from "../appwrite.config";
-import { parseStringify } from "../utils";
+import { APPOINTMENT_ID, DATABASE_ID, databases, messaging } from "../appwrite.config";
+import { formatDateTime, parseStringify } from "../utils";
 import { Appointment } from "@/types/appwrite.type";
 import { revalidatePath } from "next/cache";
 
@@ -95,6 +95,9 @@ export const updateAppointment = async ({userId, appointmentId, appointment, typ
         }
 
         //TODO SMS Notification
+        const smsMessage = `Hola, te saluda clinica CarePulse.${type === 'schedule' ? ` Tu cita ha sido agendada para el ${formatDateTime(appointment.schedule!).dateTime}\n\nDr. ${appointment.primaryPhysician}` : `Lamentamos infromarle que su cita ha sido cancelada. Motivo: ${appointment.cancellationReason}.\n\nLe avisaremos cuando su cita sea reagendada`}`;
+
+        await sendSMSNotification(userId, smsMessage);
 
         revalidatePath("/admin");
         return parseStringify(updatedAppointment);
@@ -102,3 +105,13 @@ export const updateAppointment = async ({userId, appointmentId, appointment, typ
         console.log("There was an error while updating appointment: ", error);
     }
 }
+
+export const sendSMSNotification = async (userId : string, content : string) => {
+    try {
+        const message = await messaging.createSms(ID.unique(), content, [], [userId]);
+
+        return parseStringify(message);
+    } catch (error) {
+        console.log("There was an error while sending SMS notification: ", error);
+    }
+};

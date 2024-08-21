@@ -101,10 +101,11 @@ const PatientForm = () => {
             label={field.label}
             name={field.name}
             placeholder={field.placeholder}
+            disabled={isLoading}
           />
         ))}
 
-        <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
+        <SubmitButton isLoading={isLoading}>Empecemos</SubmitButton>
       </form>
     </Form>
   );

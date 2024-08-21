@@ -1,7 +1,12 @@
 import React from 'react'
 import { Button } from './ui/button';
 import Image from 'next/image';
-import { ButtonProps } from '@/interface';
+
+interface ButtonProps {
+  isLoading: boolean;
+  className?: string;
+  children: React.ReactNode;
+}
 
 const SubmitButton = ({isLoading, className, children} : ButtonProps) => {
   return (
@@ -19,7 +24,7 @@ const SubmitButton = ({isLoading, className, children} : ButtonProps) => {
             height={24}
             className='animate-spin'
           />
-          Loading...
+          Cargando...
         </div>
       ) : children}
     </Button>

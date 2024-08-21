@@ -49,7 +49,7 @@ const Admin = async () => {
           
           <StatCard
             type="cancelled"
-            count={appointments.counts.scheduledCount}
+            count={appointments.counts.cancelledCount}
             label="Citas canceladas"
             icon="/assets/icons/cancelled.svg"
           />

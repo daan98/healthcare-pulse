@@ -13,36 +13,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import StatusBadge from "../StatusBadge"
-import { Patient } from "@/types/appwrite.type"
+import { Appointment, Patient } from "@/types/appwrite.type"
 import { formatDateTime } from "@/lib/utils"
 import Image from "next/image"
 import { Doctors } from "@/constants"
 import AppointmentModal from "../AppointmentModal"
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type AppointmentTable = {
-  $id: string;
-  status: Status;
-  schedule: string | Date;
-  patient: Patient;
-  primaryPhysician: string;
-  userId: string;
-}
-
-export const columns: ColumnDef<AppointmentTable>[] = [
+export const columns: ColumnDef<Appointment>[] = [
   {
     header: "ID",
     cell: ({ row }) => <p className="text-14-medium">{ row.index + 1 }</p>
   },
   {
     accessorKey: "patient",
-    header: "Patient",
+    header: "Paciente",
     cell: ({ row }) => <p className="text-14-medium">{ row.original.patient.name }</p>
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: "Estatus",
     cell: ({ row }) => (
       <div className="min-w-[115px]">
         <StatusBadge status={row.original.status} />
@@ -51,7 +40,7 @@ export const columns: ColumnDef<AppointmentTable>[] = [
   },
   {
     accessorKey: "schedule",
-    header: "Appointment",
+    header: "Consulta",
     cell: ({ row }) => (
       <p className="text-14-regular min-w-[100px]">
         { formatDateTime(row.original.schedule).dateTime }
@@ -86,9 +75,8 @@ export const columns: ColumnDef<AppointmentTable>[] = [
   },
   {
     id: "actions",
-    header: () => <div className="pl-4">Actions</div>,
+    header: () => <div className="pl-4">Acciones</div>,
     cell: ({ row : {original : data} }) => {
-      console.log({data});
       return (
         <div className="flex gap-1">
           <AppointmentModal
@@ -97,7 +85,7 @@ export const columns: ColumnDef<AppointmentTable>[] = [
             appointment={data}
             userId={data.userId}
             title="Agendar Cita"
-            description="Por favor confirma la siguiente información para agendar la cita."
+            description="Por favor confirme la siguiente información para agendar la cita."
           />
           <AppointmentModal
             type="cancel"
