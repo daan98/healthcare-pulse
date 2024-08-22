@@ -15,6 +15,7 @@ import { Doctors } from '@/constants';
 import { createAppointment, updateAppointment } from '@/lib/actions/appointment.action';
 import { getAppointmentSchema } from '@/lib/validation';
 import { Appointment } from '@/types/appwrite.type';
+import { toast } from 'sonner';
 
 const AppointmentForm = ({
   userId,
@@ -45,7 +46,6 @@ const AppointmentForm = ({
   })
  
   async function onSubmit(values : z.infer<typeof AppointmentFormValidation>) {
-    console.log("submitting: ", {type});
     setisLoading(true);
 
     const { primaryPhysician, schedule, reason, note } = values;
@@ -97,26 +97,46 @@ const AppointmentForm = ({
             type
           };
   
-          console.log("inside appointmentToUpdate: ", appointmentToUpdate);
-  
           const updatedAppointment = await updateAppointment(appointmentToUpdate);
   
           if(updatedAppointment) {
               setOpen && setOpen(false);
               form.reset();
               setisLoading(false);
+              showAlert("La cita se acrtualizo exitosamente.", "success");
           } else {
             setisLoading(false);
-            // TODO ENVIAR MENSAJE DE QUE NO SE ENCONTRO LA CITA
+            showAlert("No se encontro la cita que desea actualizar.", "info");
           }
         }
         }
       }
     catch (error) {
-      setisLoading(false);
       console.log("Error while submitting the appointment form: ",  error);
+      setisLoading(false);
+      showAlert("Hubo un error al manejar la información.", "error");
     }
   }
+
+  const showAlert = (description: string, type : "error" | "info" | "warning" | "success") => {
+    switch(type) {
+      case "error":
+        toast.error(description);
+      break;
+
+      case "info":
+        toast.info(description);
+      break;
+
+      case "warning":
+        toast.warning(description);
+      break;
+
+      case "success":
+        toast.success(description);
+      break;
+    }
+  };
 
   let buttonLabel;
 

@@ -14,7 +14,9 @@ const Success = async ({params : {userId}, searchParams } : SearchParamProps) =>
   let foundDoctor = Doctors.find((doctor) => doctor.name === appointment.primaryPhysician);
   const user = await getUser(userId);
   
-  Sentry.metrics.set("user_view_appointment-success", user.name);
+  if(user) {
+    Sentry.metrics.set("user_view_appointment-success", user.name);
+  }
 
   return (
     <div className='flex h-screen max-h-screen px-[5%]'>
@@ -73,11 +75,19 @@ const Success = async ({params : {userId}, searchParams } : SearchParamProps) =>
           </div>
         </section>
 
-        <Button variant="outline" className='shad-primary-btn' asChild>
-          <Link href={`/patients/${userId}/new-appointment`}>
-            Nueva Cita
-          </Link>
-        </Button>
+        <div className='flex flex-col gap-6 md:flex-row'>
+          <Button variant="outline" className='shad-primary-btn' asChild>
+            <Link href={`/patients/${userId}/new-appointment`}>
+              Nueva Cita
+            </Link>
+          </Button>
+
+          <Button variant="outline" className='shad-primary-btn' asChild>
+            <Link href={`/`}>
+              Volver al inicio
+            </Link>
+          </Button>
+        </div>
 
         <p className="copyright py-12">
           © 2024 CarePulse

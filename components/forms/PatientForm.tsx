@@ -10,6 +10,7 @@ import SubmitButton from "../SubmitButton"
 import { UserFormValidation } from "@/lib/validation"
 import { useRouter } from "next/navigation"
 import { createUser } from "@/lib/actions/patient.actions"
+import { toast } from "sonner"
 
 export enum FormFieldTypeEnum  {
   INPUT = "input",
@@ -42,13 +43,39 @@ const PatientForm = () => {
       const userData : CreateUserParams = { name, email, phone };
 
       const user = await createUser(userData);
-
-      if (user) router.push(`/patients/${user.$id}/register`)
+      
+      if (user.$id) {
+        router.push(`/patients/${user.$id}/register`);
+      } else {
+        showAlert("El correo y/o número proporcionado ya están siendo utilizados.", "info");
+        setisLoading(false);
+      }
     } catch (error) {
-      setisLoading(false);
       console.log("Error while submitting the form: ",  error);
+      setisLoading(false);
+      showAlert("Hubo un error al enviar la información.", "error");
     }
   }
+
+  const showAlert = (description: string, type : "error" | "info" | "warning" | "success") => {
+    switch(type) {
+      case "error":
+        toast.error(description);
+      break;
+
+      case "info":
+        toast.info(description);
+      break;
+
+      case "warning":
+        toast.warning(description);
+      break;
+
+      case "success":
+        toast.success(description);
+      break;
+    }
+  };
 
   const fields : FormFieldInterface[] = [
     {

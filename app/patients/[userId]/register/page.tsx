@@ -9,7 +9,9 @@ const Register = async ({ params : { userId }} : SearchParamProps) => {
 
   const user = await getUser(userId);
 
-  Sentry.metrics.set("user_view_register", user.name);
+  if(user) {
+    Sentry.metrics.set("user_view_register", user.name);
+  }
 
   return (
     <div className="flex h-screen max-h-screen">

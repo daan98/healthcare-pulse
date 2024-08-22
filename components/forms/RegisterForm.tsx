@@ -18,6 +18,7 @@ import { createUser, registerPatient } from "@/lib/actions/patient.actions"
 import { FormFieldTypeEnum } from "./PatientForm"
 import { PatientFormValidation, UserFormValidation } from "@/lib/validation"
 import SubmitButton from "../SubmitButton"
+import { toast } from "sonner"
 
 const RegisterForm = ({ user } : {user : User}) => {
 
@@ -62,10 +63,31 @@ const RegisterForm = ({ user } : {user : User}) => {
         router.push(`/patients/${user.$id}/new-appointment`);
       }
     } catch (error) {
-      setisLoading(false);
       console.log("Error while submitting the register form: ",  error);
+      setisLoading(false);
+      showAlert("Hubo un error al registrarse.", "error");
     }
   }
+
+  const showAlert = (description: string, type : "error" | "info" | "warning" | "success") => {
+    switch(type) {
+      case "error":
+        toast.error(description);
+      break;
+
+      case "info":
+        toast.info(description);
+      break;
+
+      case "warning":
+        toast.warning(description);
+      break;
+
+      case "success":
+        toast.success(description);
+      break;
+    }
+  };
 
   return(
     <Form {...form}>
@@ -374,7 +396,7 @@ const RegisterForm = ({ user } : {user : User}) => {
           label="Acepto la politica de privacidad."
         />
 
-        <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
+        <SubmitButton isLoading={isLoading}>Registrarse</SubmitButton>
       </form>
     </Form>
   );
